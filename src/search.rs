@@ -17,7 +17,6 @@ use crate::types::{NewsSearchResponse, SearchResponse, SearchResult};
 const KAGI_SEARCH_PATH: &str = "/html/search";
 const KAGI_NEWS_SEARCH_PATH: &str = "/news";
 const KAGI_API_SEARCH_PATH: &str = "/api/v1/search";
-const KAGI_API_SEARCH_WORKFLOW: &str = "search";
 const DEBUG_BODY_PREVIEW_LIMIT: usize = 256;
 const UNAUTHENTICATED_MARKERS: [&str; 3] = [
     "<title>Kagi Search - A Premium Search Engine</title>",
@@ -352,8 +351,7 @@ pub async fn execute_api_search(
         .header(header::AUTHORIZATION, format!("Bearer {token}"))
         .header(header::CONTENT_TYPE, "application/json")
         .json(&json!({
-            "workflow": KAGI_API_SEARCH_WORKFLOW,
-            "q": request.query.trim(),
+            "query": request.query.trim(),
         }))
         .send()
         .await
@@ -374,7 +372,19 @@ pub async fn execute_api_search(
                 KagiError::Parse(format!("failed to parse Kagi API response: {error}"))
             })?;
             Ok(SearchResponse {
-                data: api_response.data,
+                data: api_response
+                    .data
+                    .search
+                    .into_iter()
+                    .map(|item| SearchResult {
+                        t: 0,
+                        rank: None,
+                        url: item.url,
+                        title: item.title,
+                        snippet: item.snippet,
+                        published: item.published,
+                    })
+                    .collect(),
             })
         }
         status if status.is_client_error() => {
@@ -713,7 +723,22 @@ fn build_client() -> Result<Client, KagiError> {
 
 #[derive(Debug, Deserialize)]
 struct ApiSearchResponse {
-    data: Vec<SearchResult>,
+    data: ApiSearchData,
+}
+
+#[derive(Debug, Deserialize)]
+struct ApiSearchData {
+    search: Vec<ApiSearchItem>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ApiSearchItem {
+    url: String,
+    title: String,
+    #[serde(default)]
+    snippet: String,
+    #[serde(rename = "time")]
+    published: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -932,22 +957,22 @@ mod tests {
                 .header("authorization", "Bearer api-token")
                 .header("content-type", "application/json")
                 .json_body(json!({
-                    "workflow": "search",
-                    "q": "test query"
+                    "query": "test query"
                 }));
             then.status(200)
                 .header("content-type", "application/json")
                 .body(
                     r#"{
-                    "meta": { "id": "abc", "node": "us", "ms": 10 },
-                    "data": [
-                        {
-                            "t": 0,
-                            "url": "https://example.com",
-                            "title": "Example",
-                            "snippet": "Example snippet"
-                        }
-                    ]
+                    "meta": { "trace": "abc", "node": "us", "ms": 10 },
+                    "data": {
+                        "search": [
+                            {
+                                "url": "https://example.com",
+                                "title": "Example",
+                                "snippet": "Example snippet"
+                            }
+                        ]
+                    }
                 }"#,
                 );
         });
@@ -968,20 +993,21 @@ mod tests {
     #[test]
     fn parses_api_response_shape_into_search_response() {
         let raw = r#"{
-            "meta": { "id": "abc", "node": "us", "ms": 10 },
-            "data": [
-                {
-                    "t": 0,
-                    "url": "https://example.com",
-                    "title": "Example",
-                    "snippet": "Example snippet"
-                }
-            ]
+            "meta": { "trace": "abc", "node": "us", "ms": 10 },
+            "data": {
+                "search": [
+                    {
+                        "url": "https://example.com",
+                        "title": "Example",
+                        "snippet": "Example snippet"
+                    }
+                ]
+            }
         }"#;
 
         let parsed: ApiSearchResponse = serde_json::from_str(raw).expect("api response parses");
-        assert_eq!(parsed.data.len(), 1);
-        assert_eq!(parsed.data[0].title, "Example");
+        assert_eq!(parsed.data.search.len(), 1);
+        assert_eq!(parsed.data.search[0].title, "Example");
     }
 
     #[test]

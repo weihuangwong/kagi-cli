@@ -119,6 +119,13 @@ fn search_payload(title: &str, url: &str, snippet: &str) -> Value {
     })
 }
 
+fn search_request_payload(query: &str) -> Value {
+    json!({
+        "workflow": "search",
+        "q": query
+    })
+}
+
 fn news_latest_batch() -> Value {
     json!({
         "createdAt": "2026-04-06T00:00:00Z",
@@ -188,10 +195,11 @@ fn news_stories() -> Value {
 fn search_command_returns_json_from_mock_api() {
     let server = MockServer::start();
     let _search = server.mock(|when, then| {
-        when.method(GET)
+        when.method(POST)
             .path("/api/v1/search")
-            .query_param("q", "rust programming")
-            .header("authorization", "Bot test-api-token");
+            .header("authorization", "Bearer test-api-token")
+            .header("content-type", "application/json")
+            .json_body(search_request_payload("rust programming"));
         then.status(200)
             .header("content-type", "application/json")
             .json_body(search_payload(
@@ -218,10 +226,11 @@ fn search_command_returns_json_from_mock_api() {
 fn search_command_returns_toon_from_mock_api() {
     let server = MockServer::start();
     let _search = server.mock(|when, then| {
-        when.method(GET)
+        when.method(POST)
             .path("/api/v1/search")
-            .query_param("q", "rust programming")
-            .header("authorization", "Bot test-api-token");
+            .header("authorization", "Bearer test-api-token")
+            .header("content-type", "application/json")
+            .json_body(search_request_payload("rust programming"));
         then.status(200)
             .header("content-type", "application/json")
             .json_body(search_payload(
@@ -250,10 +259,11 @@ fn search_command_returns_toon_from_mock_api() {
 fn search_command_pretty_format_prints_ranked_results() {
     let server = MockServer::start();
     let _search = server.mock(|when, then| {
-        when.method(GET)
+        when.method(POST)
             .path("/api/v1/search")
-            .query_param("q", "rust programming")
-            .header("authorization", "Bot test-api-token");
+            .header("authorization", "Bearer test-api-token")
+            .header("content-type", "application/json")
+            .json_body(search_request_payload("rust programming"));
         then.status(200)
             .header("content-type", "application/json")
             .json_body(search_payload(
@@ -288,10 +298,11 @@ fn search_command_pretty_format_prints_ranked_results() {
 fn search_command_limit_truncates_results() {
     let server = MockServer::start();
     let _search = server.mock(|when, then| {
-        when.method(GET)
+        when.method(POST)
             .path("/api/v1/search")
-            .query_param("q", "rust")
-            .header("authorization", "Bot test-api-token");
+            .header("authorization", "Bearer test-api-token")
+            .header("content-type", "application/json")
+            .json_body(search_request_payload("rust"));
         then.status(200)
             .header("content-type", "application/json")
             .json_body(json!({
@@ -324,10 +335,11 @@ fn search_command_limit_truncates_results() {
 fn batch_command_returns_queries_and_results() {
     let server = MockServer::start();
     let _rust = server.mock(|when, then| {
-        when.method(GET)
+        when.method(POST)
             .path("/api/v1/search")
-            .query_param("q", "rust")
-            .header("authorization", "Bot test-api-token");
+            .header("authorization", "Bearer test-api-token")
+            .header("content-type", "application/json")
+            .json_body(search_request_payload("rust"));
         then.status(200)
             .header("content-type", "application/json")
             .json_body(search_payload(
@@ -337,10 +349,11 @@ fn batch_command_returns_queries_and_results() {
             ));
     });
     let _zig = server.mock(|when, then| {
-        when.method(GET)
+        when.method(POST)
             .path("/api/v1/search")
-            .query_param("q", "zig")
-            .header("authorization", "Bot test-api-token");
+            .header("authorization", "Bearer test-api-token")
+            .header("content-type", "application/json")
+            .json_body(search_request_payload("zig"));
         then.status(200)
             .header("content-type", "application/json")
             .json_body(search_payload(
@@ -379,10 +392,11 @@ fn batch_command_returns_queries_and_results() {
 fn batch_command_reports_partial_failures_in_json_mode() {
     let server = MockServer::start();
     let _ok = server.mock(|when, then| {
-        when.method(GET)
+        when.method(POST)
             .path("/api/v1/search")
-            .query_param("q", "rust")
-            .header("authorization", "Bot test-api-token");
+            .header("authorization", "Bearer test-api-token")
+            .header("content-type", "application/json")
+            .json_body(search_request_payload("rust"));
         then.status(200)
             .header("content-type", "application/json")
             .json_body(search_payload(
@@ -392,10 +406,11 @@ fn batch_command_reports_partial_failures_in_json_mode() {
             ));
     });
     let _fail = server.mock(|when, then| {
-        when.method(GET)
+        when.method(POST)
             .path("/api/v1/search")
-            .query_param("q", "broken")
-            .header("authorization", "Bot test-api-token");
+            .header("authorization", "Bearer test-api-token")
+            .header("content-type", "application/json")
+            .json_body(search_request_payload("broken"));
         then.status(403)
             .header("content-type", "application/json")
             .json_body(json!({
@@ -433,10 +448,11 @@ fn batch_command_reports_partial_failures_in_json_mode() {
 fn auth_check_validates_credentials_without_live_network() {
     let server = MockServer::start();
     let _search = server.mock(|when, then| {
-        when.method(GET)
+        when.method(POST)
             .path("/api/v1/search")
-            .query_param("q", "rust lang")
-            .header("authorization", "Bot test-api-token");
+            .header("authorization", "Bearer test-api-token")
+            .header("content-type", "application/json")
+            .json_body(search_request_payload("rust lang"));
         then.status(200)
             .header("content-type", "application/json")
             .json_body(search_payload(
@@ -756,10 +772,11 @@ fn assistant_thread_list_paginates_with_cursor_id() {
 fn batch_command_reads_queries_from_stdin() {
     let server = MockServer::start();
     let _rust = server.mock(|when, then| {
-        when.method(GET)
+        when.method(POST)
             .path("/api/v1/search")
-            .query_param("q", "rust")
-            .header("authorization", "Bot test-api-token");
+            .header("authorization", "Bearer test-api-token")
+            .header("content-type", "application/json")
+            .json_body(search_request_payload("rust"));
         then.status(200)
             .header("content-type", "application/json")
             .json_body(search_payload(
@@ -769,10 +786,11 @@ fn batch_command_reads_queries_from_stdin() {
             ));
     });
     let _zig = server.mock(|when, then| {
-        when.method(GET)
+        when.method(POST)
             .path("/api/v1/search")
-            .query_param("q", "zig")
-            .header("authorization", "Bot test-api-token");
+            .header("authorization", "Bearer test-api-token")
+            .header("content-type", "application/json")
+            .json_body(search_request_payload("zig"));
         then.status(200)
             .header("content-type", "application/json")
             .json_body(search_payload(
@@ -800,10 +818,11 @@ fn batch_command_reads_queries_from_stdin() {
 fn search_template_renders_result_fields() {
     let server = MockServer::start();
     let _search = server.mock(|when, then| {
-        when.method(GET)
+        when.method(POST)
             .path("/api/v1/search")
-            .query_param("q", "rust")
-            .header("authorization", "Bot test-api-token");
+            .header("authorization", "Bearer test-api-token")
+            .header("content-type", "application/json")
+            .json_body(search_request_payload("rust"));
         then.status(200)
             .header("content-type", "application/json")
             .json_body(search_payload(

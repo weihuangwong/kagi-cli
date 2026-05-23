@@ -47,7 +47,7 @@ use crate::types::{
     TranslateWarning, TranslationSuggestionsResponse, WordInsightsResponse,
 };
 
-const KAGI_SUMMARIZE_PATH: &str = "/api/v0/summarize";
+const KAGI_SUMMARIZE_PATH: &str = "/api/v1/summarize";
 const KAGI_SUBSCRIBER_SUMMARIZE_PATH: &str = "/mother/summary_labs";
 const KAGI_NEWS_LATEST_PATH: &str = "/api/batches/latest";
 const KAGI_NEWS_CATEGORIES_METADATA_PATH: &str = "/api/categories/metadata";
@@ -75,9 +75,9 @@ const KAGI_SETTINGS_REDIRECTS_PATH: &str = "/settings/redirects";
 const KAGI_REDIRECTS_CREATE_UPDATE_PATH: &str = "/rewrite_rules";
 const KAGI_REDIRECTS_DELETE_PATH: &str = "/rewrite_rules/delete";
 const KAGI_REDIRECTS_TOGGLE_PATH: &str = "/rewrite_rules/toggle";
-const KAGI_FASTGPT_PATH: &str = "/api/v0/fastgpt";
-const KAGI_ENRICH_WEB_PATH: &str = "/api/v0/enrich/web";
-const KAGI_ENRICH_NEWS_PATH: &str = "/api/v0/enrich/news";
+const KAGI_FASTGPT_PATH: &str = "/api/v1/fastgpt";
+const KAGI_ENRICH_WEB_PATH: &str = "/api/v1/enrich/web";
+const KAGI_ENRICH_NEWS_PATH: &str = "/api/v1/enrich/news";
 const KAGI_SMALLWEB_FEED_PATH: &str = "/api/v1/smallweb/feed/";
 const KAGI_TRANSLATE_DETECT_PATH: &str = "/api/detect";
 const KAGI_TRANSLATE_PATH: &str = "/api/translate";

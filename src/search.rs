@@ -15,7 +15,7 @@ use crate::types::{NewsSearchResponse, SearchResponse, SearchResult};
 
 const KAGI_SEARCH_PATH: &str = "/html/search";
 const KAGI_NEWS_SEARCH_PATH: &str = "/news";
-const KAGI_API_SEARCH_PATH: &str = "/api/v0/search";
+const KAGI_API_SEARCH_PATH: &str = "/api/v1/search";
 const DEBUG_BODY_PREVIEW_LIMIT: usize = 256;
 const UNAUTHENTICATED_MARKERS: [&str; 3] = [
     "<title>Kagi Search - A Premium Search Engine</title>",

@@ -189,7 +189,7 @@ fn search_command_returns_json_from_mock_api() {
     let server = MockServer::start();
     let _search = server.mock(|when, then| {
         when.method(GET)
-            .path("/api/v0/search")
+            .path("/api/v1/search")
             .query_param("q", "rust programming")
             .header("authorization", "Bot test-api-token");
         then.status(200)
@@ -219,7 +219,7 @@ fn search_command_returns_toon_from_mock_api() {
     let server = MockServer::start();
     let _search = server.mock(|when, then| {
         when.method(GET)
-            .path("/api/v0/search")
+            .path("/api/v1/search")
             .query_param("q", "rust programming")
             .header("authorization", "Bot test-api-token");
         then.status(200)
@@ -251,7 +251,7 @@ fn search_command_pretty_format_prints_ranked_results() {
     let server = MockServer::start();
     let _search = server.mock(|when, then| {
         when.method(GET)
-            .path("/api/v0/search")
+            .path("/api/v1/search")
             .query_param("q", "rust programming")
             .header("authorization", "Bot test-api-token");
         then.status(200)
@@ -289,7 +289,7 @@ fn search_command_limit_truncates_results() {
     let server = MockServer::start();
     let _search = server.mock(|when, then| {
         when.method(GET)
-            .path("/api/v0/search")
+            .path("/api/v1/search")
             .query_param("q", "rust")
             .header("authorization", "Bot test-api-token");
         then.status(200)
@@ -325,7 +325,7 @@ fn batch_command_returns_queries_and_results() {
     let server = MockServer::start();
     let _rust = server.mock(|when, then| {
         when.method(GET)
-            .path("/api/v0/search")
+            .path("/api/v1/search")
             .query_param("q", "rust")
             .header("authorization", "Bot test-api-token");
         then.status(200)
@@ -338,7 +338,7 @@ fn batch_command_returns_queries_and_results() {
     });
     let _zig = server.mock(|when, then| {
         when.method(GET)
-            .path("/api/v0/search")
+            .path("/api/v1/search")
             .query_param("q", "zig")
             .header("authorization", "Bot test-api-token");
         then.status(200)
@@ -380,7 +380,7 @@ fn batch_command_reports_partial_failures_in_json_mode() {
     let server = MockServer::start();
     let _ok = server.mock(|when, then| {
         when.method(GET)
-            .path("/api/v0/search")
+            .path("/api/v1/search")
             .query_param("q", "rust")
             .header("authorization", "Bot test-api-token");
         then.status(200)
@@ -393,7 +393,7 @@ fn batch_command_reports_partial_failures_in_json_mode() {
     });
     let _fail = server.mock(|when, then| {
         when.method(GET)
-            .path("/api/v0/search")
+            .path("/api/v1/search")
             .query_param("q", "broken")
             .header("authorization", "Bot test-api-token");
         then.status(403)
@@ -434,7 +434,7 @@ fn auth_check_validates_credentials_without_live_network() {
     let server = MockServer::start();
     let _search = server.mock(|when, then| {
         when.method(GET)
-            .path("/api/v0/search")
+            .path("/api/v1/search")
             .query_param("q", "rust lang")
             .header("authorization", "Bot test-api-token");
         then.status(200)
@@ -460,7 +460,7 @@ fn summarize_url_command_prints_structured_json() {
     let server = MockServer::start();
     let _summarize = server.mock(|when, then| {
         when.method(POST)
-            .path("/api/v0/summarize")
+            .path("/api/v1/summarize")
             .header("authorization", "Bot test-api-token");
         then.status(200)
             .header("content-type", "application/json")
@@ -757,7 +757,7 @@ fn batch_command_reads_queries_from_stdin() {
     let server = MockServer::start();
     let _rust = server.mock(|when, then| {
         when.method(GET)
-            .path("/api/v0/search")
+            .path("/api/v1/search")
             .query_param("q", "rust")
             .header("authorization", "Bot test-api-token");
         then.status(200)
@@ -770,7 +770,7 @@ fn batch_command_reads_queries_from_stdin() {
     });
     let _zig = server.mock(|when, then| {
         when.method(GET)
-            .path("/api/v0/search")
+            .path("/api/v1/search")
             .query_param("q", "zig")
             .header("authorization", "Bot test-api-token");
         then.status(200)
@@ -801,7 +801,7 @@ fn search_template_renders_result_fields() {
     let server = MockServer::start();
     let _search = server.mock(|when, then| {
         when.method(GET)
-            .path("/api/v0/search")
+            .path("/api/v1/search")
             .query_param("q", "rust")
             .header("authorization", "Bot test-api-token");
         then.status(200)

@@ -920,6 +920,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(clippy::await_holding_lock)]
     async fn execute_api_search_posts_workflow_json_with_bearer_auth() {
         use httpmock::Method::POST;
         use httpmock::MockServer;
@@ -934,8 +935,10 @@ mod tests {
                     "workflow": "search",
                     "q": "test query"
                 }));
-            then.status(200).header("content-type", "application/json").body(
-                r#"{
+            then.status(200)
+                .header("content-type", "application/json")
+                .body(
+                    r#"{
                     "meta": { "id": "abc", "node": "us", "ms": 10 },
                     "data": [
                         {
@@ -946,7 +949,7 @@ mod tests {
                         }
                     ]
                 }"#,
-            );
+                );
         });
 
         let _guard = lock_env();

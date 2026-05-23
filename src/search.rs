@@ -6,6 +6,7 @@
 
 use reqwest::{Client, StatusCode, header};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use tracing::debug;
 
 use crate::error::KagiError;
@@ -16,6 +17,7 @@ use crate::types::{NewsSearchResponse, SearchResponse, SearchResult};
 const KAGI_SEARCH_PATH: &str = "/html/search";
 const KAGI_NEWS_SEARCH_PATH: &str = "/news";
 const KAGI_API_SEARCH_PATH: &str = "/api/v1/search";
+const KAGI_API_SEARCH_WORKFLOW: &str = "search";
 const DEBUG_BODY_PREVIEW_LIMIT: usize = 256;
 const UNAUTHENTICATED_MARKERS: [&str; 3] = [
     "<title>Kagi Search - A Premium Search Engine</title>",
@@ -346,9 +348,13 @@ pub async fn execute_api_search(
 
     let client = build_client()?;
     let response = client
-        .get(http::kagi_url(KAGI_API_SEARCH_PATH))
-        .query(&[("q", request.query.trim())])
-        .header(header::AUTHORIZATION, format!("Bot {token}"))
+        .post(http::kagi_url(KAGI_API_SEARCH_PATH))
+        .header(header::AUTHORIZATION, format!("Bearer {token}"))
+        .header(header::CONTENT_TYPE, "application/json")
+        .json(&json!({
+            "workflow": KAGI_API_SEARCH_WORKFLOW,
+            "q": request.query.trim(),
+        }))
         .send()
         .await
         .map_err(map_transport_error)?;
@@ -741,6 +747,7 @@ fn format_api_error_suffix(body: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_support::lock_env;
 
     #[test]
     fn search_request_builder_creates_base_request() {
@@ -910,6 +917,49 @@ mod tests {
             err.to_string()
                 .contains("search filters require KAGI_SESSION_TOKEN")
         );
+    }
+
+    #[tokio::test]
+    async fn execute_api_search_posts_workflow_json_with_bearer_auth() {
+        use httpmock::Method::POST;
+        use httpmock::MockServer;
+
+        let server = MockServer::start();
+        let _request = server.mock(|when, then| {
+            when.method(POST)
+                .path("/api/v1/search")
+                .header("authorization", "Bearer api-token")
+                .header("content-type", "application/json")
+                .json_body(json!({
+                    "workflow": "search",
+                    "q": "test query"
+                }));
+            then.status(200).header("content-type", "application/json").body(
+                r#"{
+                    "meta": { "id": "abc", "node": "us", "ms": 10 },
+                    "data": [
+                        {
+                            "t": 0,
+                            "url": "https://example.com",
+                            "title": "Example",
+                            "snippet": "Example snippet"
+                        }
+                    ]
+                }"#,
+            );
+        });
+
+        let _guard = lock_env();
+        unsafe { std::env::set_var(http::KAGI_BASE_URL_ENV, server.base_url()) };
+
+        let response = execute_api_search(&SearchRequest::new("test query"), "api-token")
+            .await
+            .expect("api search should succeed");
+
+        unsafe { std::env::remove_var(http::KAGI_BASE_URL_ENV) };
+
+        assert_eq!(response.data.len(), 1);
+        assert_eq!(response.data[0].title, "Example");
     }
 
     #[test]
